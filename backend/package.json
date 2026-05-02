@@ -1,19 +1,22 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend PBT-2 - Monitor de baterías via Arduino y Bluetooth",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "node --watch index.js"
   },
-  "keywords": [],
+  "keywords": ["battery", "monitoring", "arduino"],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.1.0",
-    "pg": "^8.20.0"
-  }
+    "pg": "^8.20.0",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {}
 }
