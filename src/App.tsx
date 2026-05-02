@@ -35,12 +35,21 @@ const DashboardView = ({ metrics, history, isConnected }: DashboardViewProps) =>
   // Calcular potencia en W (voltage en V * current en A)
   const powerInWatts = metrics.voltage * metrics.current;
   
+  // Mapa estático de colores — necesario para que Tailwind no purgue las clases en build
+  const colorClasses: Record<string, string> = {
+    'neon':   'text-industrial-neon bg-industrial-neon/10',
+    'red':    'text-red-500 bg-red-500/10',
+    'yellow': 'text-yellow-500 bg-yellow-500/10',
+    'green':  'text-green-500 bg-green-500/10',
+    'blue':   'text-blue-500 bg-blue-500/10',
+  };
+
   // Determinar estado de salud basado en voltaje y SOC
-  const getHealthStatus = (soc: number, voltage: number): { status: string; color: string } => {
-    if (voltage < 0.3) return { status: 'Crítico', color: 'text-red-500' };
-    if (soc < 10) return { status: 'Bajo', color: 'text-yellow-500' };
-    if (soc > 80) return { status: 'Óptimo', color: 'text-green-500' };
-    return { status: 'Normal', color: 'text-blue-500' };
+  const getHealthStatus = (soc: number, voltage: number): { status: string; colorKey: string } => {
+    if (voltage < 0.3) return { status: 'Crítico', colorKey: 'red' };
+    if (soc < 10)      return { status: 'Bajo',    colorKey: 'yellow' };
+    if (soc > 80)      return { status: 'Óptimo',  colorKey: 'green' };
+    return              { status: 'Normal',         colorKey: 'blue' };
   };
 
   const healthStatus = getHealthStatus(metrics.soc, metrics.voltage);
@@ -137,31 +146,31 @@ const DashboardView = ({ metrics, history, isConnected }: DashboardViewProps) =>
                 label: 'Voltaje (Vreal)', 
                 status: metrics.voltage > 0.3 ? 'En Línea' : 'Crítico', 
                 val: metrics.voltage.toFixed(3) + ' V',
-                color: metrics.voltage > 0.3 ? 'industrial-neon' : 'red-500'
+                colorKey: metrics.voltage > 0.3 ? 'neon' : 'red'
               },
               { 
                 label: 'Voltaje Pin ADC (Vpin)', 
                 status: 'Normal', 
                 val: metrics.vpin.toFixed(3) + ' V',
-                color: 'industrial-neon'
+                colorKey: 'neon'
               },
               { 
                 label: 'Estado de Carga', 
                 status: healthStatus.status, 
                 val: metrics.soc + ' %',
-                color: healthStatus.color.replace('text-', '')
+                colorKey: healthStatus.colorKey
               },
               { 
                 label: 'Temperatura del Sistema', 
                 status: metrics.temp < 40 ? 'Nominal' : 'Elevada', 
                 val: metrics.temp.toFixed(1) + ' °C',
-                color: metrics.temp < 40 ? 'industrial-neon' : 'yellow-500'
+                colorKey: metrics.temp < 40 ? 'neon' : 'yellow'
               },
               {
                 label: 'Conexión Bluetooth',
                 status: isConnected ? 'Conectado' : 'Desconectado',
                 val: isConnected ? '✓ Activo' : '✗ Inactivo',
-                color: isConnected ? 'industrial-neon' : 'red-500'
+                colorKey: isConnected ? 'neon' : 'red'
               },
             ].map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-4 border border-white/5 bg-white/5 rounded-sm hover:border-white/10 transition-colors">
@@ -170,8 +179,8 @@ const DashboardView = ({ metrics, history, isConnected }: DashboardViewProps) =>
                   <p className="text-xs text-white font-mono font-bold tracking-tight">{item.val}</p>
                 </div>
                 <span className={cn(
-                  "text-[10px] font-mono bg-opacity-10 px-3 py-1 rounded",
-                  `text-${item.color} bg-${item.color}`
+                  "text-[10px] font-mono px-3 py-1 rounded",
+                  colorClasses[item.colorKey]
                 )}>
                   {item.status}
                 </span>
