@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import medicionesRouter from './routes/mediciones.js';
 
 dotenv.config();
 
