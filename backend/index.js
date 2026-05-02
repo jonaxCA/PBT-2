@@ -21,6 +21,10 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
+// =============MEDICIONES ROUTER =============
+app.use('/api', medicionesRouter);
+app.use(medicionesRouter);
+
 // ============ DATABASE CONNECTION ============
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
