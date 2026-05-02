@@ -1,0 +1,6 @@
+{
+  "name": "VoltCore Industrial Monitor",
+  "description": "High-precision real-time monitoring dashboard for industrial-scale battery storage systems (BESS), featuring KPI tracking, thermal analysis, and support management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
