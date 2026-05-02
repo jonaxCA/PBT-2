@@ -1,27 +1,7 @@
 import express from 'express';
-import pkg from 'pg';
-import dotenv from 'dotenv';
+import pool from '../db.js';
 
-dotenv.config();
-
-const { Pool } = pkg;
 const router = express.Router();
-
-// ============ DATABASE CONFIGURATION ============
-// ✅ Usar variables de entorno en lugar de hardcoded credentials
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, // Requerido para Neon
-});
-
-// Verificar conexión a la BD
-pool.on('connect', () => {
-  console.log('✅ Pool de mediciones conectado a PostgreSQL');
-});
-
-pool.on('error', (err) => {
-  console.error('❌ Error en pool de mediciones:', err);
-});
 
 // ============ FUNCIONES AUXILIARES ============
 
