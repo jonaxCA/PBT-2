@@ -154,7 +154,7 @@ const DashboardView = ({ metrics, history, isConnected }: DashboardViewProps) =>
               { 
                 label: 'Temperatura del Sistema', 
                 status: metrics.temp < 40 ? 'Nominal' : 'Elevada', 
-                val: metrics.soc.toFixed(1) + ' °C',
+                val: metrics.temp.toFixed(1) + ' °C',
                 color: metrics.temp < 40 ? 'industrial-neon' : 'yellow-500'
               },
               {
