@@ -394,4 +394,50 @@ router.get('/mediciones/estadisticas', async (req, res) => {
   }
 });
 
+// ============ POST /mediciones/raw ============
+// Recibe el string crudo del Arduino enviado desde el frontend via Web Bluetooth.
+// El celular actúa como puente: lee BT y hace POST aquí.
+// Esto permite que el dato persista en BD y llegue via WebSocket a otros clientes.
+router.post('/mediciones/raw', async (req, res) => {
+  const { rawData } = req.body;
+
+  if (!rawData || typeof rawData !== 'string') {
+    return res.status(400).json({ error: 'Se requiere el campo rawData (string)' });
+  }
+
+  const parsed = parseArduinoData(rawData);
+  if (!parsed.success) {
+    return res.status(422).json({ error: parsed.error });
+  }
+
+  try {
+    const dbData = mapArduinoToDatabase(parsed.data);
+
+    const result = await pool.query(
+      `INSERT INTO mediciones (dispositivo_id, voltaje, corriente, temperatura, nivel_bateria)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, timestamp`,
+      [
+        dbData.dispositivo_id,
+        dbData.voltaje,
+        dbData.corriente,
+        dbData.temperatura,
+        dbData.nivel_bateria,
+      ]
+    );
+
+    const saved = result.rows[0];
+
+    res.status(201).json({
+      success: true,
+      id: saved.id,
+      timestamp: saved.timestamp,
+      parsed: parsed.data,
+    });
+  } catch (error) {
+    console.error('❌ Error en POST /mediciones/raw:', error);
+    res.status(500).json({ error: 'Error guardando medición', message: error.message });
+  }
+});
+
 export default router;
