@@ -7,12 +7,14 @@ interface MetricCardProps {
   label: string;
   value: number;
   unit: string;
+  max?: number;   // Valor máximo para la barra de progreso; si no se pasa, la barra no se muestra
   trend?: number;
   icon?: React.ElementType;
   className?: string;
 }
 
-export const MetricCard = ({ label, value, unit, trend, icon: Icon, className }: MetricCardProps) => {
+export const MetricCard = ({ label, value, unit, max, trend, icon: Icon, className }: MetricCardProps) => {
+  const barPercent = max != null && max > 0 ? Math.min((value / max) * 100, 100) : null;
   return (
     <div className={cn("bg-industrial-card border border-industrial-border p-5 rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors", className)}>
       <div className="flex justify-between items-start mb-4">
@@ -40,11 +42,13 @@ export const MetricCard = ({ label, value, unit, trend, icon: Icon, className }:
           </div>
         )}
         <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-           <motion.div 
-             initial={{ width: 0 }}
-             animate={{ width: "65%" }}
-             className="h-full bg-zinc-800"
-           />
+           {barPercent != null && (
+             <motion.div
+               initial={{ width: 0 }}
+               animate={{ width: `${barPercent}%` }}
+               className="h-full bg-zinc-800"
+             />
+           )}
         </div>
       </div>
 
