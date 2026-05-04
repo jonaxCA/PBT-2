@@ -21,11 +21,6 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// ============ ROUTERS ============
-// Fix #2: Las rutas de mediciones viven solo en routes/mediciones.js.
-// Se montan en / para mantener compatibilidad con el frontend (GET /mediciones/latest, etc.)
-app.use('/', medicionesRouter);
-
 // ============ VARIABLES GLOBALES ============
 const DEVICE_ID_DEFAULT = 1;
 
@@ -142,6 +137,10 @@ app.post('/dispositivos', async (req, res) => {
     res.status(500).json({ error: 'Error al crear dispositivo', message: error.message });
   }
 });
+
+// ============ ROUTERS ============
+// Montado después de las rutas propias para que GET / no sea interceptado por el router
+app.use('/', medicionesRouter);
 
 // ============ WEBSOCKET (SOCKET.IO) ============
 
