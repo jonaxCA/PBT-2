@@ -7,28 +7,29 @@ const router = express.Router();
 
 /**
  * Parsea datos crudos del Arduino
- * Formato esperado: "Vpin: 0.122 V | Vreal: 0.536 V | %: 4"
+ * Formato esperado: "Vpin: 0.122 V | Vreal: 0.536 V | %: 4 | Temp: 24.50 C"
+ * El campo Temp es opcional — sketches sin sensor pueden omitirlo.
  */
 function parseArduinoData(rawData) {
   try {
     const vpinMatch = rawData.match(/Vpin:\s*([\d.]+)\s*V/);
     const vrealMatch = rawData.match(/Vreal:\s*([\d.]+)\s*V/);
     const socMatch = rawData.match(/%:\s*(\d+)/);
+    const tempMatch = rawData.match(/Temp:\s*(-?[\d.]+)\s*C/);
 
     if (vpinMatch && vrealMatch && socMatch) {
-      return {
-        success: true,
-        data: {
-          vpin: parseFloat(vpinMatch[1]),
-          vreal: parseFloat(vrealMatch[1]),
-          soc: parseInt(socMatch[1], 10),
-        },
+      const data = {
+        vpin: parseFloat(vpinMatch[1]),
+        vreal: parseFloat(vrealMatch[1]),
+        soc: parseInt(socMatch[1], 10),
       };
+      if (tempMatch) data.temp = parseFloat(tempMatch[1]);
+      return { success: true, data };
     }
 
     return {
       success: false,
-      error: 'Formato no reconocido. Esperado: "Vpin: X.XXX V | Vreal: X.XXX V | %: XX"',
+      error: 'Formato no reconocido. Esperado: "Vpin: X.XXX V | Vreal: X.XXX V | %: XX | Temp: XX.XX C"',
     };
   } catch (error) {
     return {
@@ -54,10 +55,23 @@ function mapArduinoToDatabase(arduinoData, additionalData = {}) {
     ? (arduinoData.vreal / ASSUMED_LOAD_RESISTANCE)
     : 0;
 
+  // Prioridad para la temperatura:
+  // 1) la que el Arduino reportó dentro del frame BLE (LM35)
+  // 2) la que venga en additionalData (override manual del cliente)
+  // 3) fallback 25.0°C si no hay ninguna
+  let temperatura;
+  if (typeof arduinoData.temp === 'number') {
+    temperatura = arduinoData.temp;
+  } else if (additionalData.temperatura !== undefined && additionalData.temperatura !== null) {
+    temperatura = parseFloat(additionalData.temperatura);
+  } else {
+    temperatura = 25.0;
+  }
+
   return {
     voltaje: parseFloat(arduinoData.vreal).toFixed(4),
     corriente: parseFloat(corriente).toFixed(4),
-    temperatura: parseFloat(additionalData.temperatura || 25.0).toFixed(2),
+    temperatura: parseFloat(temperatura).toFixed(2),
     nivel_bateria: parseInt(arduinoData.soc),
   };
 }
