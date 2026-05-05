@@ -28,20 +28,24 @@ const DEVICE_ID_DEFAULT = 1;
 
 /**
  * Parsea datos crudos del Arduino
- * Formato esperado: "Vpin: 0.122 V | Vreal: 0.536 V | %: 4"
+ * Formato esperado: "Vpin: 0.122 V | Vreal: 0.536 V | %: 4 | Temp: 24.50 C"
+ * El campo Temp es opcional — sketches sin sensor pueden omitirlo.
  */
 function parseArduinoData(rawData) {
   try {
     const vpinMatch = rawData.match(/Vpin:\s*([\d.]+)\s*V/);
     const vrealMatch = rawData.match(/Vreal:\s*([\d.]+)\s*V/);
     const socMatch = rawData.match(/%:\s*(\d+)/);
+    const tempMatch = rawData.match(/Temp:\s*(-?[\d.]+)\s*C/);
 
     if (vpinMatch && vrealMatch && socMatch) {
-      return {
+      const parsed = {
         vpin: parseFloat(vpinMatch[1]),
         vreal: parseFloat(vrealMatch[1]),
         soc: parseInt(socMatch[1], 10),
       };
+      if (tempMatch) parsed.temp = parseFloat(tempMatch[1]);
+      return parsed;
     }
 
     console.warn('⚠️ Formato de datos no reconocido:', rawData);
@@ -65,7 +69,8 @@ function calculateDerivedMetrics(arduinoData) {
   return {
     voltaje: arduinoData.vreal,
     corriente,
-    temperatura: 25.0, // Placeholder hasta agregar sensor DHT22
+    // Temperatura real del LM35 si vino en el frame; si no, fallback 25°C
+    temperatura: typeof arduinoData.temp === 'number' ? arduinoData.temp : 25.0,
     nivel_bateria: arduinoData.soc,
     potencia: arduinoData.vreal * corriente,
   };
