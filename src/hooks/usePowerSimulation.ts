@@ -48,13 +48,17 @@ export function usePowerSimulation() {
       const vpinMatch = rawData.match(/Vpin:\s*([\d.]+)\s*V/);
       const vrealMatch = rawData.match(/Vreal:\s*([\d.]+)\s*V/);
       const socMatch = rawData.match(/%:\s*(\d+)/);
+      // Temp es opcional — el Arduino puede o no incluir el sensor LM35
+      const tempMatch = rawData.match(/Temp:\s*(-?[\d.]+)\s*C/);
 
       if (vpinMatch && vrealMatch && socMatch) {
-        return {
+        const parsed: ArduinoRawData = {
           vpin: parseFloat(vpinMatch[1]),
           vreal: parseFloat(vrealMatch[1]),
           soc: parseInt(socMatch[1], 10),
         };
+        if (tempMatch) parsed.temp = parseFloat(tempMatch[1]);
+        return parsed;
       }
 
       console.warn('⚠️ Formato de datos no reconocido:', rawData);
@@ -101,7 +105,8 @@ export function usePowerSimulation() {
       powerIn: powerInWatts,
       powerOut: 0,
       health,
-      temp: 25.0,
+      // Si el Arduino reportó temperatura usamos esa; si no, fallback a 25°C
+      temp: arduinoData.temp ?? 25.0,
       cycles: 0,
       timestamp: new Date().toLocaleTimeString('es-ES', {
         hour: '2-digit',
