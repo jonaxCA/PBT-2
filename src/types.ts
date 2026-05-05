@@ -2,12 +2,15 @@ export type Page = 'dashboard' | 'support';
 
 /**
  * Datos directos del Arduino via Bluetooth
- * Formato esperado: "Vpin: 0.122 V | Vreal: 0.536 V | %: 4"
+ * Formato esperado: "Vpin: 0.122 V | Vreal: 0.536 V | %: 4 | Temp: 24.50 C"
+ * El campo Temp es opcional — sketches viejos sin sensor de temperatura
+ * pueden seguir enviando solo Vpin/Vreal/%.
  */
 export interface ArduinoRawData {
   vpin: number;    // Voltaje del pin ADC (V) - antes del divisor de voltaje
   vreal: number;   // Voltaje real de la batería (V) - después del divisor
   soc: number;     // State of Charge (%) - porcentaje de carga
+  temp?: number;   // Temperatura (°C) - LM35 u equivalente (opcional)
 }
 
 /**
